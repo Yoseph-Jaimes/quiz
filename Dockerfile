@@ -1,4 +1,10 @@
+# Etapa 1: Compilar la aplicación
+FROM maven:3.8.5-openjdk-17 AS build
+COPY . .
+RUN mvn clean package -DskipTests
+
+# Etapa 2: Ejecutar la aplicación
 FROM eclipse-temurin:17-jdk-alpine
-COPY "./target/quiz-1.jarr" "app.jar"
+COPY --from=build /target/quiz-1.jar app.jar
 EXPOSE 8110
-ENTRYPOINT [ "java", "-jar", "app.jar" ]
+ENTRYPOINT ["java", "-jar", "app.jar"]
