@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPA Relaciones | Spring Boot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f0f2f5;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Hero Section */
+        .hero-gradient {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.05)" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+            background-size: cover;
+            opacity: 0.3;
+        }
+
+        /* Tarjetas estadísticas */
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 800;
+            color: #1e3c72;
+            line-height: 1.2;
+        }
+
+        /* Tarjetas de relaciones */
+        .relation-card {
+            border: none;
+            border-radius: 16px;
+            transition: all 0.2s;
+            cursor: default;
+            height: 100%;
+        }
+
+        .relation-card:hover {
+            transform: scale(1.02);
+        }
+
+        .relation-badge {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        /* Footer con letras blancas */
+        .footer {
+            background: #1a1a2e;
+            color: #ffffff;
+            margin-top: 60px;
+            padding: 40px 0 20px;
+        }
+
+        .footer h5, .footer h6 {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .footer p, .footer li, .footer span {
+            color: #ffffff;
+        }
+
+        .footer .text-muted {
+            color: #ffffff !important;
+        }
+
+        .footer a {
+            color: #ffffff;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .footer a:hover {
+            color: #cccccc;
+            text-decoration: underline;
+        }
+
+        .footer hr {
+            background-color: #ffffff;
+            opacity: 0.2;
+        }
+
+        /* Botón principal */
+        .btn-glass {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-glass:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-database me-2"></i>JPA Relations
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link active" href="/">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/clubes">Clubes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/entrenadores">Entrenadores</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/jugadores">Jugadores</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/asociaciones">Asociaciones</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/competiciones">Competiciones</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-gradient text-white py-5">
+        <div class="container py-4">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-3">
+                        <i class="fas fa-link me-2"></i>Relaciones JPA en Spring
+                    </h1>
+                    <p class="lead mb-4">
+                        Aprende a mapear relaciones entre entidades con <strong>@OneToOne</strong>, <strong>@OneToMany</strong>, 
+                        <strong>@ManyToOne</strong> y <strong>@ManyToMany</strong>.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-center d-none d-lg-block">
+                    <i class="fas fa-project-diagram" style="font-size: 180px; opacity: 0.8;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="container mt-4">
+
+        <!-- Tarjetas de estadísticas -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="stat-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted">Total Clubes</span>
+                            <div class="stat-number" th:text="${totalClubes}">0</div>
+                        </div>
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                    </div>
+                    <a href="/clubes" class="small text-decoration-none mt-2 d-block">Ver todos →</a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted">Entrenadores</span>
+                            <div class="stat-number" th:text="${totalEntrenadores}">0</div>
+                        </div>
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="fas fa-chalkboard-user"></i>
+                        </div>
+                    </div>
+                    <a href="/entrenadores" class="small text-decoration-none mt-2 d-block">Ver todos →</a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted">Jugadores</span>
+                            <div class="stat-number" th:text="${totalJugadores}">0</div>
+                        </div>
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="fas fa-futbol"></i>
+                        </div>
+                    </div>
+                    <a href="/jugadores" class="small text-decoration-none mt-2 d-block">Ver todos →</a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted">Competiciones</span>
+                            <div class="stat-number" th:text="${totalCompeticiones}">0</div>
+                        </div>
+                        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                    </div>
+                    <a href="/competiciones" class="small text-decoration-none mt-2 d-block">Ver todos →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Explicación de relaciones JPA -->
+        <div class="text-center mb-4">
+            <h2 class="fw-bold">Tipos de Relaciones JPA</h2>
+            <p class="text-muted">Cómo se mapean las relaciones en tu modelo de datos</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="relation-card card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="relation-badge bg-success text-white mx-auto mb-3">
+                            <i class="fas fa-1"></i>
+                        </div>
+                        <span class="badge bg-success mb-2">@OneToOne</span>
+                        <h5>Club → Entrenador</h5>
+                        <p class="small text-muted">Un club tiene un solo entrenador. La FK está en la tabla club.</p>
+                        <hr>
+                        <code class="small">@JoinColumn(name = "entrenador_id")</code>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="relation-card card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="relation-badge bg-warning text-dark mx-auto mb-3">
+                            <i class="fas fa-1-many"></i>1→N
+                        </div>
+                        <span class="badge bg-warning text-dark mb-2">@OneToMany</span>
+                        <h5>Club → Jugadores</h5>
+                        <p class="small text-muted">Un club tiene muchos jugadores. Con @JoinColumn evita tabla intermedia.</p>
+                        <hr>
+                        <code class="small">@JoinColumn(name = "club_id")</code>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="relation-card card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="relation-badge bg-danger text-white mx-auto mb-3">
+                            <i class="fas fa-n-1"></i>N→1
+                        </div>
+                        <span class="badge bg-danger mb-2">@ManyToOne</span>
+                        <h5>Club → Asociación</h5>
+                        <p class="small text-muted">Muchos clubes pertenecen a una asociación. FK en la tabla club.</p>
+                        <hr>
+                        <code class="small">@JoinColumn(name = "asociacion_id")</code>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="relation-card card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="relation-badge bg-info text-white mx-auto mb-3">
+                            <i class="fas fa-n-n"></i>N↔N
+                        </div>
+                        <span class="badge bg-info mb-2">@ManyToMany</span>
+                        <h5>Club ⇄ Competiciones</h5>
+                        <p class="small text-muted">Muchos clubes participan en muchas competiciones. Tabla intermedia.</p>
+                        <hr>
+                        <code class="small">@JoinTable(name = "club_competiciones")</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info adicional: Lazy vs Eager -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-rocket fs-2 text-primary me-3"></i>
+                            <h4 class="mb-0">FetchType: ¿Lazy o Eager?</h4>
+                        </div>
+                        <p class="text-muted">
+                            En este proyecto usamos <strong>FetchType.LAZY</strong> para todas las relaciones, 
+                            mejorando el rendimiento y evitando el problema N+1. Solo se cargan los datos cuando realmente se necesitan.
+                        </p>
+                        <div class="alert alert-secondary mt-3 mb-0 small">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Las relaciones <code>@OneToOne</code>, <code>@OneToMany</code>, <code>@ManyToOne</code> y <code>@ManyToMany</code> 
+                            están configuradas con <code>fetch = FetchType.LAZY</code>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer con letras blancas -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-5">
+                    <h5><i class="fas fa-database me-2"></i>Spring Data JPA - Relaciones</h5>
+                    <p>Ejemplo práctico de mapeo de relaciones OneToOne, OneToMany, ManyToOne y ManyToMany con Hibernate y Spring Boot.</p>
+                </div>
+                <div class="col-md-4">
+                    <h6>📌 Enlaces Rápidos</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/clubes">🏆 Clubes</a></li>
+                        <li><a href="/entrenadores">👨‍🏫 Entrenadores</a></li>
+                        <li><a href="/jugadores">⚽ Jugadores</a></li>
+                        <li><a href="/asociaciones">🏅 Asociaciones</a></li>
+                        <li><a href="/competiciones">🏆 Competiciones</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>🛠️ Tecnologías</h6>
+                    <ul class="list-unstyled">
+                        <li>Spring Boot 3.x</li>
+                        <li>Spring Data JPA</li>
+                        <li>H2 Database</li>
+                        <li>Thymeleaf</li>
+                        <li>Bootstrap 5</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p class="mb-0">&copy; 2026 JPA Relations - Proyecto educativo sobre relaciones en Spring Framework</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $("#btnLoadData").click(function() {
+            $.post("/api/demo-data", function(data) {
+                alert(data);
+                location.reload();
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Competiciones - JPA Relations</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f0f2f5; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .page-header { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 40px 0; margin-bottom: 40px; border-radius: 0 0 20px 20px; }
+        .competicion-card { border: none; border-radius: 16px; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.08); height: 100%; }
+        .competicion-card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.12); }
+        .premio-badge { font-size: 1.2rem; font-weight: bold; color: #ffc107; }
+        .footer { background: #1a1a2e; color: #ffffff; margin-top: 60px; padding: 40px 0 20px; }
+        .footer h5, .footer h6, .footer p, .footer li, .footer a { color: #ffffff; }
+        .footer a:hover { color: #cccccc; text-decoration: underline; }
+        .footer hr { background-color: #ffffff; opacity: 0.2; }
+        .btn-floating { position: fixed; bottom: 30px; right: 30px; border-radius: 50%; width: 60px; height: 60px; font-size: 24px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 1000; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/"><i class="fas fa-database me-2"></i>JPA Relations</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/clubes">Clubes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/entrenadores">Entrenadores</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/jugadores">Jugadores</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/asociaciones">Asociaciones</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/competiciones">Competiciones</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="fas fa-trophy me-3"></i>Competiciones</h1>
+                    <p class="lead mb-0">Torneos y ligas en las que participan los clubes</p>
+                </div>
+                <a href="/competicion-form" class="btn btn-light btn-lg">
+                    <i class="fas fa-plus me-2"></i>Nueva Competición
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i><span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i><span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row">
+            <div th:each="competicion : ${competiciones}" class="col-md-4 mb-4">
+                <div class="competicion-card card">
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-trophy" style="font-size: 48px; color: #ffc107;"></i>
+                        </div>
+                        <h3 class="card-title text-center" th:text="${competicion.nombre}"></h3>
+                        <hr>
+                        <p class="text-center premio-badge">
+                            <i class="fas fa-dollar-sign"></i> <span th:text="${competicion.montoPremio}"></span> USD
+                        </p>
+                        <div class="text-start">
+                            <p><i class="fas fa-calendar-alt"></i> <strong>Inicio:</strong> <span th:text="${competicion.fechaInicio}"></span></p>
+                            <p><i class="fas fa-calendar-check"></i> <strong>Fin:</strong> <span th:text="${competicion.fechaFin}"></span></p>
+                        </div>
+                        <div class="d-flex gap-2 mt-3 justify-content-center">
+                            <a th:href="@{/competicion-detalle/{id}(id=${competicion.id})}" class="btn btn-info btn-sm">
+                                <i class="fas fa-eye me-1"></i>Ver Detalle
+                            </a>
+                            <a th:href="@{/competicion-form/{id}(id=${competicion.id})}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit me-1"></i>Editar
+                            </a>
+                            <a th:href="@{/competicion/delete/{id}(id=${competicion.id})}" class="btn btn-danger btn-sm"
+                               onclick="return confirm('¿Estás seguro de eliminar esta competición?')">
+                                <i class="fas fa-trash me-1"></i>Eliminar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div th:if="${competiciones == null or competiciones.empty}" class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>No hay competiciones registradas.
+        </div>
+    </div>
+
+    <a href="/competicion-form" class="btn btn-success btn-floating">
+        <i class="fas fa-plus"></i>
+    </a>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-database me-2"></i>Spring Data JPA - CRUD Completo</h5>
+                    <p>Gestión completa de competiciones</p>
+                </div>
+                <div class="col-md-3">
+                    <h6>📌 Enlaces</h6>
+                    <ul class="list-unstyled"><li><a href="/">Inicio</a></li><li><a href="/competiciones">Competiciones</a></li></ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>🛠️ Tecnologías</h6>
+                    <ul class="list-unstyled"><li>Spring Boot 3</li><li>JPA / Hibernate</li><li>Bootstrap 5</li></ul>
+                </div>
+            </div>
+            <hr><div class="text-center"><p class="mb-0">&copy; 2024 JPA Relations</p></div>
+        </div>
+    </footer>
+</body>
+</html>
